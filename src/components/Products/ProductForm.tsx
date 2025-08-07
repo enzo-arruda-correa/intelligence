@@ -13,12 +13,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
+    description: '',
     unit: '',
     category: '',
     salePrice: 0,
+    costPrice: 0,
     allocatedFixedCost: 0,
     productionTime: 0,
     averageLossPercentage: 0,
+    status: 'active' as 'active' | 'inactive',
   });
 
   const [bomItems, setBomItems] = useState<Omit<BOMItem, 'rawMaterial' | 'wasteAdjustedQuantity'>[]>([]);
@@ -29,12 +32,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
       setFormData({
         name: product.name,
         code: product.code,
+        description: product.description || '',
         unit: product.unit,
         category: product.category,
         salePrice: product.salePrice,
+        costPrice: product.costPrice,
         allocatedFixedCost: product.allocatedFixedCost,
         productionTime: product.productionTime,
         averageLossPercentage: product.averageLossPercentage,
+        status: product.status,
       });
 
       if (product.bom) {
@@ -176,6 +182,16 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 required
               />
             </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                placeholder="Descrição detalhada do produto"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Unidade</label>
               <input
@@ -209,6 +225,16 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Preço de Custo (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.costPrice}
+                onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Custo Fixo Alocado (R$)</label>
               <input
                 type="number"
@@ -236,6 +262,17 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 onChange={(e) => setFormData({ ...formData, averageLossPercentage: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
             </div>
           </div>
         </div>

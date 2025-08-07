@@ -148,7 +148,7 @@ export class SupabaseService {
   // Products
   static async getProducts() {
     const { data, error } = await supabase
-      .from('erp_products')
+      .from('products')
       .select(`
         *,
         bom:erp_bom(
@@ -159,8 +159,10 @@ export class SupabaseService {
           ),
           production_steps:erp_production_steps(*)
         ),
-        cost_calculation:erp_cost_calculations(*)
+        cost_calculation:erp_cost_calculations(*),
+        variations:products_variations(*)
       `)
+      .eq('status', 'active')
       .order('name')
     
     if (error) throw error
@@ -168,11 +170,13 @@ export class SupabaseService {
   }
 
   static async createProduct(product: Tables['erp_products']['Insert']) {
+  }
+  static async createProduct(product: Tables['products']['Insert']) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
     const { data, error } = await supabase
-      .from('erp_products')
+      .from('products')
       .insert({ ...product, user_id: user.id })
       .select()
       .single()
@@ -181,9 +185,9 @@ export class SupabaseService {
     return data
   }
 
-  static async updateProduct(id: string, product: Tables['erp_products']['Update']) {
+  static async updateProduct(id: string, product: Tables['products']['Update']) {
     const { data, error } = await supabase
-      .from('erp_products')
+      .from('products')
       .update(product)
       .eq('id', id)
       .select()
@@ -195,7 +199,52 @@ export class SupabaseService {
 
   static async deleteProduct(id: string) {
     const { error } = await supabase
-      .from('erp_products')
+      .from('products')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+
+  // Product Variations
+  static async getProductVariations(productId: string) {
+    const { data, error } = await supabase
+      .from('products_variations')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('status', 'active')
+      .order('name')
+    
+    if (error) throw error
+    return data
+  }
+
+  static async createProductVariation(variation: Tables['products_variations']['Insert']) {
+    const { data, error } = await supabase
+      .from('products_variations')
+      .insert(variation)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async updateProductVariation(id: string, variation: Tables['products_variations']['Update']) {
+    const { data, error } = await supabase
+      .from('products_variations')
+      .update(variation)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async deleteProductVariation(id: string) {
+    const { error } = await supabase
+      .from('products_variations')
       .delete()
       .eq('id', id)
     

@@ -135,14 +135,32 @@ export function ERPProvider({ children }: { children: ReactNode }) {
       const data = await SupabaseService.getProducts();
       const mappedProducts: Product[] = data.map(item => ({
         id: item.id,
+        userId: item.user_id,
         name: item.name,
         code: item.code,
+        description: item.description || '',
         unit: item.unit,
         category: item.category,
         salePrice: Number(item.sale_price),
+        costPrice: Number(item.cost_price || 0),
         allocatedFixedCost: Number(item.allocated_fixed_cost),
         productionTime: item.production_time,
         averageLossPercentage: Number(item.average_loss_percentage),
+        status: item.status as 'active' | 'inactive',
+        variations: item.variations?.map(variation => ({
+          id: variation.id,
+          productId: variation.product_id,
+          name: variation.name,
+          code: variation.code,
+          salePrice: Number(variation.sale_price),
+          costPrice: Number(variation.cost_price),
+          stockQuantity: Number(variation.stock_quantity),
+          minimumStock: Number(variation.minimum_stock),
+          attributes: variation.attributes as Record<string, any>,
+          status: variation.status as 'active' | 'inactive',
+          createdAt: new Date(variation.created_at),
+          updatedAt: new Date(variation.updated_at)
+        })) || [],
         bom: item.bom ? {
           id: item.bom.id,
           productId: item.bom.product_id,
@@ -230,12 +248,15 @@ export function ERPProvider({ children }: { children: ReactNode }) {
       const dbProduct = await SupabaseService.createProduct({
         name: productData.name,
         code: productData.code,
+        description: productData.description,
         unit: productData.unit,
         category: productData.category,
         sale_price: productData.salePrice,
+        cost_price: productData.costPrice,
         allocated_fixed_cost: productData.allocatedFixedCost,
         production_time: productData.productionTime,
-        average_loss_percentage: productData.averageLossPercentage
+        average_loss_percentage: productData.averageLossPercentage,
+        status: productData.status || 'active'
       });
 
       // Create BOM if provided

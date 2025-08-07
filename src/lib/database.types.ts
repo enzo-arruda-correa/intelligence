@@ -9,6 +9,103 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      products: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          code: string
+          description: string | null
+          category: string
+          unit: string
+          sale_price: number
+          cost_price: number
+          allocated_fixed_cost: number
+          production_time: number
+          average_loss_percentage: number
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          code: string
+          description?: string | null
+          category: string
+          unit: string
+          sale_price?: number
+          cost_price?: number
+          allocated_fixed_cost?: number
+          production_time?: number
+          average_loss_percentage?: number
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          code?: string
+          description?: string | null
+          category?: string
+          unit?: string
+          sale_price?: number
+          cost_price?: number
+          allocated_fixed_cost?: number
+          production_time?: number
+          average_loss_percentage?: number
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      products_variations: {
+        Row: {
+          id: string
+          product_id: string
+          name: string
+          code: string
+          sale_price: number
+          cost_price: number
+          stock_quantity: number
+          minimum_stock: number
+          attributes: Json
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          name: string
+          code: string
+          sale_price?: number
+          cost_price?: number
+          stock_quantity?: number
+          minimum_stock?: number
+          attributes?: Json
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          name?: string
+          code?: string
+          sale_price?: number
+          cost_price?: number
+          stock_quantity?: number
+          minimum_stock?: number
+          attributes?: Json
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
       erp_suppliers: {
         Row: {
           id: string

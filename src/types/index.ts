@@ -1,3 +1,18 @@
+export interface ProductVariation {
+  id: string;
+  productId: string;
+  name: string;
+  code: string;
+  salePrice: number;
+  costPrice: number;
+  stockQuantity: number;
+  minimumStock: number;
+  attributes: Record<string, any>;
+  status: 'active' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Supplier {
   id: string;
   name: string;
@@ -51,15 +66,20 @@ export interface BillOfMaterials {
 
 export interface Product {
   id: string;
+  userId: string;
   name: string;
   code: string;
+  description?: string;
   unit: string;
   category: string;
   salePrice: number;
+  costPrice: number;
   allocatedFixedCost: number;
   productionTime: number; // minutos
   averageLossPercentage: number;
+  status: 'active' | 'inactive';
   bom?: BillOfMaterials;
+  variations?: ProductVariation[];
   createdAt: Date;
   updatedAt: Date;
 }
