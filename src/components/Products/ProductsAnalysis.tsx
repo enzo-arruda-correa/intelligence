@@ -173,83 +173,83 @@ export function ProductsAnalysis() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Análise de Produtos</h1>
-        <div className="flex items-center space-x-4">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Análise de Produtos</h1>
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <div className="relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Pesquisar produtos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm w-32 sm:w-auto"
             />
           </div>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
+          <button className="flex items-center px-2 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+            <Filter className="w-4 h-4 mr-0 sm:mr-2" />
+            <span className="hidden sm:inline">Filtros</span>
           </button>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total de Produtos</p>
-              <p className="text-2xl font-bold text-gray-900">{filteredProducts.length}</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total de Produtos</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{filteredProducts.length}</p>
             </div>
-            <Package className="w-8 h-8 text-blue-600" />
+            <Package className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
           </div>
-          <div className="mt-2 text-sm text-gray-500">
+          <div className="mt-2 text-xs sm:text-sm text-gray-500">
             {totalStock} unidades em estoque
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Receita Total</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Receita Total</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-all">
                 R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <DollarSign className="w-8 h-8 text-green-600" />
+            <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Vendas Totais</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Vendas Totais</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                 {totalSales.toLocaleString()}
               </p>
             </div>
-            <BarChart3 className="w-8 h-8 text-purple-600" />
+            <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Margem Média</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Margem Média</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                 {avgMargin.toFixed(1)}%
               </p>
             </div>
-            <TrendingUp className="w-8 h-8 text-orange-600" />
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600 flex-shrink-0" />
           </div>
         </div>
       </div>
 
       {/* Top Products Chart */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top 10 Produtos por Receita</h3>
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Top 10 Produtos por Receita</h3>
+        <ResponsiveContainer width="100%" height={250} minWidth={300}>
           <BarChart data={getTopProducts()}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
+            <XAxis dataKey="name" fontSize={12} />
             <YAxis />
             <Tooltip />
             <Bar dataKey="receita" fill="#3B82F6" />
@@ -259,35 +259,35 @@ export function ProductsAnalysis() {
 
       {/* Products Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Lista de Produtos</h3>
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Lista de Produtos</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[900px]">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Produto
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   Código
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estoque
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Variações
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Vendas
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Receita
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   Margem
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ações
                 </th>
               </tr>
@@ -297,26 +297,26 @@ export function ProductsAnalysis() {
                 const metrics = calculateProductMetrics(product)
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                      <div className="text-sm text-gray-500">{product.description?.substring(0, 50)}...</div>
+                    <td className="px-3 sm:px-6 py-4">
+                      <div className="text-xs sm:text-sm font-medium text-gray-900 max-w-[150px] truncate">{product.name}</div>
+                      <div className="text-xs text-gray-500 max-w-[150px] truncate">{product.description?.substring(0, 30)}...</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden sm:table-cell">
                       {product.barcode || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                       {metrics.totalStock}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden md:table-cell">
                       {metrics.hasVariations ? `${metrics.variationsCount} variações` : 'Produto simples'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                       {product.total_sales.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                       R$ {product.total_revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap hidden lg:table-cell">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         product.profit_margin > 20 
                           ? 'bg-green-100 text-green-800' 
@@ -327,13 +327,13 @@ export function ProductsAnalysis() {
                         {product.profit_margin.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                       <button
                         onClick={() => setSelectedProduct(product)}
-                        className="text-blue-600 hover:text-blue-900 flex items-center"
+                        className="text-blue-600 hover:text-blue-900 flex items-center text-xs sm:text-sm"
                       >
-                        <BarChart3 className="w-4 h-4 mr-1" />
-                        Analisar
+                        <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        <span className="hidden sm:inline">Analisar</span>
                       </button>
                     </td>
                   </tr>
@@ -344,22 +344,22 @@ export function ProductsAnalysis() {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
+          <div className="text-xs sm:text-sm text-gray-500">
             Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredProducts.length)} de {filteredProducts.length} produtos
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 text-sm">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50"
             >
               Anterior
             </button>
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50"
             >
               Próximo
             </button>
@@ -369,32 +369,32 @@ export function ProductsAnalysis() {
 
       {/* Product Detail Modal */}
       {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                 Análise Detalhada - {selectedProduct.name}
               </h3>
               <button
                 onClick={() => setSelectedProduct(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 text-xl"
               >
                 ✕
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {(() => {
                 const metrics = calculateProductMetrics(selectedProduct)
                 return (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Product Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-3 sm:space-y-4">
                         <h4 className="font-semibold text-gray-900">Informações do Produto</h4>
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-2 text-xs sm:text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Nome:</span>
-                            <span className="font-medium">{selectedProduct.name}</span>
+                            <span className="font-medium text-right max-w-[60%] truncate">{selectedProduct.name}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Código:</span>
@@ -414,12 +414,12 @@ export function ProductsAnalysis() {
                           </div>
                         </div>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         <h4 className="font-semibold text-gray-900">Análise de Performance</h4>
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-2 text-xs sm:text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Preço Médio:</span>
-                            <span className="font-medium">R$ {metrics.avgPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span className="font-medium text-right">R$ {metrics.avgPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Total Vendido:</span>
@@ -435,49 +435,49 @@ export function ProductsAnalysis() {
                           </div>
                           <div className="flex justify-between border-t pt-2">
                             <span className="text-gray-900 font-semibold">Receita Total:</span>
-                            <span className="font-bold text-lg">R$ {selectedProduct.total_revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span className="font-bold text-base sm:text-lg text-right">R$ {selectedProduct.total_revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Performance Metrics */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{selectedProduct.total_sales}</div>
-                        <div className="text-sm text-blue-800">Total de Vendas</div>
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{selectedProduct.total_sales}</div>
+                        <div className="text-xs sm:text-sm text-blue-800">Total de Vendas</div>
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{selectedProduct.profit_margin.toFixed(1)}%</div>
-                        <div className="text-sm text-green-800">Margem de Lucro</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">{selectedProduct.profit_margin.toFixed(1)}%</div>
+                        <div className="text-xs sm:text-sm text-green-800">Margem de Lucro</div>
                       </div>
                       <div className="bg-purple-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600">{metrics.turnoverRate.toFixed(1)}%</div>
-                        <div className="text-sm text-purple-800">Taxa de Giro</div>
+                        <div className="text-xl sm:text-2xl font-bold text-purple-600">{metrics.turnoverRate.toFixed(1)}%</div>
+                        <div className="text-xs sm:text-sm text-purple-800">Taxa de Giro</div>
                       </div>
                     </div>
 
                     {/* Variations */}
                     {metrics.hasVariations && (
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-4">Variações do Produto</h4>
+                        <h4 className="font-semibold text-gray-900 mb-3 sm:mb-4">Variações do Produto</h4>
                         <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
+                          <table className="w-full text-xs sm:text-sm min-w-[400px]">
                             <thead className="bg-gray-50">
                               <tr>
-                                <th className="px-4 py-2 text-left">Nome</th>
-                                <th className="px-4 py-2 text-left">Código</th>
-                                <th className="px-4 py-2 text-left">Preço</th>
-                                <th className="px-4 py-2 text-left">Estoque</th>
+                                <th className="px-2 sm:px-4 py-2 text-left">Nome</th>
+                                <th className="px-2 sm:px-4 py-2 text-left">Código</th>
+                                <th className="px-2 sm:px-4 py-2 text-left">Preço</th>
+                                <th className="px-2 sm:px-4 py-2 text-left">Estoque</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                               {selectedProduct.product_variations.map((variation, index) => (
                                 <tr key={index}>
-                                  <td className="px-4 py-2">{variation.name}</td>
-                                  <td className="px-4 py-2">{variation.barcode}</td>
-                                  <td className="px-4 py-2">R$ {variation.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                  <td className="px-4 py-2">{variation.quantity || 0}</td>
+                                  <td className="px-2 sm:px-4 py-2 max-w-[100px] truncate">{variation.name}</td>
+                                  <td className="px-2 sm:px-4 py-2">{variation.barcode}</td>
+                                  <td className="px-2 sm:px-4 py-2">R$ {variation.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                  <td className="px-2 sm:px-4 py-2">{variation.quantity || 0}</td>
                                 </tr>
                               ))}
                             </tbody>
