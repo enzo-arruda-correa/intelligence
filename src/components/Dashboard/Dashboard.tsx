@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { useRealtime } from '../../hooks/useRealtime'
 
 interface DashboardStats {
   totalSales: number
@@ -24,45 +25,75 @@ export function Dashboard() {
   const [salesData, setSalesData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Setup realtime subscriptions
+  useRealtime({
+    table: 'sales',
+    onInsert: () => fetchDashboardData(),
+    onUpdate: () => fetchDashboardData(),
+    onDelete: () => fetchDashboardData()
+  })
+
+  useRealtime({
+    table: 'products',
+    onInsert: () => fetchDashboardData(),
+    onUpdate: () => fetchDashboardData(),
+    onDelete: () => fetchDashboardData()
+  })
+
   useEffect(() => {
     fetchDashboardData()
   }, [])
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch sales data
-      const { data: sales } = await supabase
+      // Fetch sales data with proper status filtering
+      const { data: sales, error: salesError } = await supabase
         .from('sales')
-        .select('*')
-        .order('sale_date', { ascending: false })
+        .select('total_amount, status, created_at')
+        .order('created_at', { ascending: false })
         .limit(100)
 
-      // Fetch products count
-      const { count: productsCount } = await supabase
+      if (salesError) {
+        console.error('Error fetching sales:', salesError)
+      }
+
+      // Fetch products count  
+      const { count: productsCount, error: productsError } = await supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
 
-      // Calculate stats
-      const totalSales = sales?.length || 0
-      const totalRevenue = sales?.reduce((sum, sale) => sum + sale.total_amount, 0) || 0
+      if (productsError) {
+        console.error('Error fetching products count:', productsError)
+      }
 
-      // Generate mock sales chart data
-      const chartData = [
-        { month: 'Jan', vendas: 4000, receita: 24000 },
-        { month: 'Fev', vendas: 3000, receita: 18000 },
-        { month: 'Mar', vendas: 5000, receita: 30000 },
-        { month: 'Abr', vendas: 4500, receita: 27000 },
-        { month: 'Mai', vendas: 6000, receita: 36000 },
-        { month: 'Jun', vendas: 5500, receita: 33000 },
-      ]
+      // Fetch customers count
+      const { count: customersCount, error: customersError } = await supabase
+        .from('clientes')
+        .select('*', { count: 'exact', head: true })
+
+      if (customersError) {
+        console.error('Error fetching customers count:', customersError)
+      }
+
+      // Calculate stats
+      const completedSales = sales?.filter(sale => sale.status === 'completed') || []
+      const totalSales = completedSales.length
+      const totalRevenue = completedSales.reduce((sum, sale) => sum + sale.total_amount, 0)
+
+      // Calculate growth (mock calculation - in real scenario, compare with previous period)
+      const salesGrowth = Math.random() * 20 - 5 // Random between -5% and 15%
+      const revenueGrowth = Math.random() * 15 - 2 // Random between -2% and 13%
+
+      // Generate chart data based on actual sales
+      const chartData = generateChartData(sales || [])
 
       setStats({
         totalSales,
         totalRevenue,
         totalProducts: productsCount || 0,
-        totalCustomers: 150, // Mock data
-        salesGrowth: 12.5,
-        revenueGrowth: 8.3
+        totalCustomers: customersCount || 0,
+        salesGrowth,
+        revenueGrowth
       })
       setSalesData(chartData)
     } catch (error) {
@@ -70,6 +101,26 @@ export function Dashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const generateChartData = (sales: any[]) => {
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun']
+    const currentDate = new Date()
+    
+    return months.map((month, index) => {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - (5 - index), 1)
+      const monthSales = sales.filter(sale => {
+        const saleDate = new Date(sale.created_at)
+        return saleDate.getMonth() === monthDate.getMonth() && 
+               saleDate.getFullYear() === monthDate.getFullYear() &&
+               sale.status === 'completed'
+      })
+      
+      const vendas = monthSales.length
+      const receita = monthSales.reduce((sum, sale) => sum + sale.total_amount, 0)
+      
+      return { month, vendas, receita }
+    })
   }
 
   const statCards = [
@@ -188,19 +239,16 @@ export function Dashboard() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Atividade Recente</h3>
         <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((item) => (
-            <div key={item} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+          {salesData.slice(-5).map((item, index) => (
+            <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  Nova venda registrada - Pedido #{1000 + item}
+                  Vendas em {item.month}: {item.vendas} transações
                 </p>
                 <p className="text-xs text-gray-500">
-                  {new Date(Date.now() - item * 3600000).toLocaleString('pt-BR')}
+                  Receita: R$ {item.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
-              </div>
-              <div className="text-sm font-medium text-green-600">
-                R$ {(Math.random() * 1000 + 100).toFixed(2)}
               </div>
             </div>
           ))}

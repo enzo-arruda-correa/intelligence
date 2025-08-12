@@ -15,7 +15,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeMenu, onMenuChange }: SidebarProps) {
-  const { signOut } = useAuth()
+  const { signOut, user, profile } = useAuth()
+
+  const displayName = (profile?.name || user?.email?.split('@')[0] || 'Usuário')
+  const role = profile?.role || 'Membro'
+  const avatarUrl = profile?.avatar_url
+  const initials = displayName
+    .trim()
+    .split(/\s+/)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -38,6 +49,25 @@ export function Sidebar({ activeMenu, onMenuChange }: SidebarProps) {
           alt="Logo" 
           className="h-12 w-auto"
         />
+      </div>
+
+      {/* User Header */}
+      <div className="p-4 border-b border-gray-200 flex items-center space-x-3">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={displayName}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
+            {initials}
+          </div>
+        )}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-gray-800">{displayName}</span>
+          <span className="text-xs text-gray-500">{role}</span>
+        </div>
       </div>
 
       {/* Navigation */}

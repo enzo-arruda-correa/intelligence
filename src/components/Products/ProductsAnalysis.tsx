@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Search, Filter, BarChart3, TrendingUp, Package, DollarSign } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../../lib/supabase'
+import { useRealtime } from '../../hooks/useRealtime'
 import type { Product, ProductVariation } from '../../lib/supabase'
 
 interface ProductWithVariations extends Product {
-  variations: ProductVariation[]
+  product_variations: ProductVariation[]
   total_sales: number
   total_revenue: number
   profit_margin: number
@@ -20,6 +21,29 @@ export function ProductsAnalysis() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // Setup realtime subscriptions
+  useRealtime({
+    table: 'products',
+    onInsert: () => fetchProducts(),
+    onUpdate: (payload) => {
+      setProducts(prev => prev.map(product => 
+        product.id === payload.new.id 
+          ? { ...product, ...payload.new }
+          : product
+      ))
+    },
+    onDelete: (payload) => {
+      setProducts(prev => prev.filter(product => product.id !== payload.old.id))
+    }
+  })
+
+  useRealtime({
+    table: 'product_variations',
+    onInsert: () => fetchProducts(),
+    onUpdate: () => fetchProducts(),
+    onDelete: () => fetchProducts()
+  })
+
   useEffect(() => {
     fetchProducts()
   }, [])
@@ -27,8 +51,8 @@ export function ProductsAnalysis() {
   useEffect(() => {
     const filtered = products.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      product.barcode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredProducts(filtered)
     setCurrentPage(1)
@@ -36,22 +60,51 @@ export function ProductsAnalysis() {
 
   const fetchProducts = async () => {
     try {
-      const { data: productsData } = await supabase
+      setLoading(true)
+      
+      const { data: productsData, error } = await supabase
         .from('products')
         .select(`
           *,
-          products_variations (*)
+          product_variations (*)
         `)
         .order('name')
 
-      // Mock sales data for demonstration
-      const productsWithAnalysis = productsData?.map(product => ({
-        ...product,
-        variations: product.products_variations || [],
-        total_sales: Math.floor(Math.random() * 500) + 50,
-        total_revenue: Math.floor(Math.random() * 50000) + 5000,
-        profit_margin: Math.random() * 30 + 10
-      })) || []
+      if (error) {
+        console.error('Error fetching products:', error)
+        return
+      }
+
+      // Calculate sales metrics for each product
+      const productsWithAnalysis = await Promise.all(
+        (productsData || []).map(async (product) => {
+          // Get sales data for this product
+          const { data: salesData } = await supabase
+            .from('sale_items')
+            .select(`
+              quantity,
+              price,
+              sales!inner(status, created_at)
+            `)
+            .eq('product_id', product.id)
+
+          const completedSales = salesData?.filter(item => item.sales.status === 'completed') || []
+          const total_sales = completedSales.reduce((sum, item) => sum + item.quantity, 0)
+          const total_revenue = completedSales.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+          
+          // Calculate profit margin (assuming 30% cost ratio)
+          const estimatedCost = total_revenue * 0.7
+          const profit_margin = total_revenue > 0 ? ((total_revenue - estimatedCost) / total_revenue) * 100 : 0
+
+          return {
+            ...product,
+            product_variations: product.product_variations || [],
+            total_sales,
+            total_revenue,
+            profit_margin
+          }
+        })
+      )
 
       setProducts(productsWithAnalysis)
     } catch (error) {
@@ -62,30 +115,23 @@ export function ProductsAnalysis() {
   }
 
   const calculateProductMetrics = (product: ProductWithVariations) => {
-    const hasVariations = product.variations.length > 0
+    const hasVariations = product.product_variations.length > 0
     const avgPrice = hasVariations 
-      ? product.variations.reduce((sum, v) => sum + v.price, 0) / product.variations.length
-      : product.base_price
+      ? product.product_variations.reduce((sum, v) => sum + v.price, 0) / product.product_variations.length
+      : product.price || 0
     
-    const avgCost = hasVariations
-      ? product.variations.reduce((sum, v) => sum + v.cost_price, 0) / product.variations.length
-      : product.cost_price
-
     const totalStock = hasVariations
-      ? product.variations.reduce((sum, v) => sum + v.stock_quantity, 0)
-      : 100 // Mock stock for base products
+      ? product.product_variations.reduce((sum, v) => sum + (v.quantity || 0), 0)
+      : product.quantity
 
-    const roi = ((avgPrice - avgCost) / avgCost) * 100
-    const turnoverRate = product.total_sales / totalStock * 100
+    const turnoverRate = totalStock > 0 ? (product.total_sales / totalStock) * 100 : 0
 
     return {
       hasVariations,
       avgPrice,
-      avgCost,
       totalStock,
-      roi,
       turnoverRate,
-      profitPerUnit: avgPrice - avgCost
+      variationsCount: product.product_variations.length
     }
   }
 
@@ -106,6 +152,17 @@ export function ProductsAnalysis() {
   )
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
+
+  // Calculate summary metrics
+  const totalRevenue = filteredProducts.reduce((sum, product) => sum + product.total_revenue, 0)
+  const totalSales = filteredProducts.reduce((sum, product) => sum + product.total_sales, 0)
+  const avgMargin = filteredProducts.length > 0 
+    ? filteredProducts.reduce((sum, product) => sum + product.profit_margin, 0) / filteredProducts.length 
+    : 0
+  const totalStock = filteredProducts.reduce((sum, product) => {
+    const metrics = calculateProductMetrics(product)
+    return sum + metrics.totalStock
+  }, 0)
 
   if (loading) {
     return (
@@ -147,13 +204,16 @@ export function ProductsAnalysis() {
             </div>
             <Package className="w-8 h-8 text-blue-600" />
           </div>
+          <div className="mt-2 text-sm text-gray-500">
+            {totalStock} unidades em estoque
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Receita Total</p>
               <p className="text-2xl font-bold text-gray-900">
-                R$ {filteredProducts.reduce((sum, product) => sum + product.total_revenue, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-green-600" />
@@ -164,7 +224,7 @@ export function ProductsAnalysis() {
             <div>
               <p className="text-sm font-medium text-gray-600">Vendas Totais</p>
               <p className="text-2xl font-bold text-gray-900">
-                {filteredProducts.reduce((sum, product) => sum + product.total_sales, 0).toLocaleString()}
+                {totalSales.toLocaleString()}
               </p>
             </div>
             <BarChart3 className="w-8 h-8 text-purple-600" />
@@ -175,7 +235,7 @@ export function ProductsAnalysis() {
             <div>
               <p className="text-sm font-medium text-gray-600">Margem Média</p>
               <p className="text-2xl font-bold text-gray-900">
-                {filteredProducts.length > 0 ? (filteredProducts.reduce((sum, product) => sum + product.profit_margin, 0) / filteredProducts.length).toFixed(1) : '0'}%
+                {avgMargin.toFixed(1)}%
               </p>
             </div>
             <TrendingUp className="w-8 h-8 text-orange-600" />
@@ -210,10 +270,10 @@ export function ProductsAnalysis() {
                   Produto
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  SKU
+                  Código
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Categoria
+                  Estoque
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Variações
@@ -233,49 +293,52 @@ export function ProductsAnalysis() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                    <div className="text-sm text-gray-500">{product.description?.substring(0, 50)}...</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.sku}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.variations.length > 0 ? `${product.variations.length} variações` : 'Produto simples'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {product.total_sales.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    R$ {product.total_revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      product.profit_margin > 20 
-                        ? 'bg-green-100 text-green-800' 
-                        : product.profit_margin > 10
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {product.profit_margin.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => setSelectedProduct(product)}
-                      className="text-blue-600 hover:text-blue-900 flex items-center"
-                    >
-                      <BarChart3 className="w-4 h-4 mr-1" />
-                      Analisar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {paginatedProducts.map((product) => {
+                const metrics = calculateProductMetrics(product)
+                return (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      <div className="text-sm text-gray-500">{product.description?.substring(0, 50)}...</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {product.barcode || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {metrics.totalStock}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {metrics.hasVariations ? `${metrics.variationsCount} variações` : 'Produto simples'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {product.total_sales.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      R$ {product.total_revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        product.profit_margin > 20 
+                          ? 'bg-green-100 text-green-800' 
+                          : product.profit_margin > 10
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {product.profit_margin.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => setSelectedProduct(product)}
+                        className="text-blue-600 hover:text-blue-900 flex items-center"
+                      >
+                        <BarChart3 className="w-4 h-4 mr-1" />
+                        Analisar
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -334,12 +397,12 @@ export function ProductsAnalysis() {
                             <span className="font-medium">{selectedProduct.name}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">SKU:</span>
-                            <span className="font-medium">{selectedProduct.sku}</span>
+                            <span className="text-gray-600">Código:</span>
+                            <span className="font-medium">{selectedProduct.barcode || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Categoria:</span>
-                            <span className="font-medium">{selectedProduct.category}</span>
+                            <span className="text-gray-600">Descrição:</span>
+                            <span className="font-medium">{selectedProduct.description || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Tipo:</span>
@@ -352,27 +415,23 @@ export function ProductsAnalysis() {
                         </div>
                       </div>
                       <div className="space-y-4">
-                        <h4 className="font-semibold text-gray-900">Análise Financeira</h4>
+                        <h4 className="font-semibold text-gray-900">Análise de Performance</h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Preço Médio:</span>
                             <span className="font-medium">R$ {metrics.avgPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Custo Médio:</span>
-                            <span className="font-medium">R$ {metrics.avgCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Lucro por Unidade:</span>
-                            <span className="font-medium text-green-600">R$ {metrics.profitPerUnit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">ROI:</span>
-                            <span className="font-medium text-green-600">{metrics.roi.toFixed(1)}%</span>
+                            <span className="text-gray-600">Total Vendido:</span>
+                            <span className="font-medium">{selectedProduct.total_sales} unidades</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Taxa de Giro:</span>
                             <span className="font-medium">{metrics.turnoverRate.toFixed(1)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Margem de Lucro:</span>
+                            <span className="font-medium text-green-600">{selectedProduct.profit_margin.toFixed(1)}%</span>
                           </div>
                           <div className="flex justify-between border-t pt-2">
                             <span className="text-gray-900 font-semibold">Receita Total:</span>
@@ -407,34 +466,20 @@ export function ProductsAnalysis() {
                             <thead className="bg-gray-50">
                               <tr>
                                 <th className="px-4 py-2 text-left">Nome</th>
-                                <th className="px-4 py-2 text-left">SKU</th>
+                                <th className="px-4 py-2 text-left">Código</th>
                                 <th className="px-4 py-2 text-left">Preço</th>
-                                <th className="px-4 py-2 text-left">Custo</th>
                                 <th className="px-4 py-2 text-left">Estoque</th>
-                                <th className="px-4 py-2 text-left">Margem</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                              {selectedProduct.variations.map((variation, index) => {
-                                const margin = ((variation.price - variation.cost_price) / variation.price) * 100
-                                return (
-                                  <tr key={index}>
-                                    <td className="px-4 py-2">{variation.name}</td>
-                                    <td className="px-4 py-2">{variation.sku}</td>
-                                    <td className="px-4 py-2">R$ {variation.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                    <td className="px-4 py-2">R$ {variation.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                    <td className="px-4 py-2">{variation.stock_quantity}</td>
-                                    <td className="px-4 py-2">
-                                      <span className={`px-2 py-1 text-xs rounded-full ${
-                                        margin > 20 ? 'bg-green-100 text-green-800' : 
-                                        margin > 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                                      }`}>
-                                        {margin.toFixed(1)}%
-                                      </span>
-                                    </td>
-                                  </tr>
-                                )
-                              })}
+                              {selectedProduct.product_variations.map((variation, index) => (
+                                <tr key={index}>
+                                  <td className="px-4 py-2">{variation.name}</td>
+                                  <td className="px-4 py-2">{variation.barcode}</td>
+                                  <td className="px-4 py-2">R$ {variation.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                  <td className="px-4 py-2">{variation.quantity || 0}</td>
+                                </tr>
+                              ))}
                             </tbody>
                           </table>
                         </div>
