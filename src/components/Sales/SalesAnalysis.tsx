@@ -1,22 +1,48 @@
 import React, { useState, useEffect } from 'react'
 import { Search, Filter, Eye, TrendingUp, DollarSign, Calendar, User } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import type { Sale, SaleItem } from '../../lib/supabase'
+import { useRealtime } from '../../hooks/useRealtime'
+import type { Sale, SaleItem, Cliente, Employee } from '../../lib/supabase'
 
-interface SaleWithItems extends Sale {
-  items: SaleItem[]
-  customer_name?: string
-  seller_name?: string
+interface SaleWithDetails extends Sale {
+  sale_items: SaleItem[]
+  cliente?: Cliente
+  employee?: Employee
 }
 
 export function SalesAnalysis() {
-  const [sales, setSales] = useState<SaleWithItems[]>([])
-  const [filteredSales, setFilteredSales] = useState<SaleWithItems[]>([])
-  const [selectedSale, setSelectedSale] = useState<SaleWithItems | null>(null)
+  const [sales, setSales] = useState<SaleWithDetails[]>([])
+  const [filteredSales, setFilteredSales] = useState<SaleWithDetails[]>([])
+  const [selectedSale, setSelectedSale] = useState<SaleWithDetails | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+
+  // Setup realtime subscriptions
+  useRealtime({
+    table: 'sales',
+    onInsert: (payload) => {
+      fetchSales() // Refetch all data when new sale is added
+    },
+    onUpdate: (payload) => {
+      setSales(prev => prev.map(sale => 
+        sale.id === payload.new.id 
+          ? { ...sale, ...payload.new }
+          : sale
+      ))
+    },
+    onDelete: (payload) => {
+      setSales(prev => prev.filter(sale => sale.id !== payload.old.id))
+    }
+  })
+
+  useRealtime({
+    table: 'sale_items',
+    onInsert: () => fetchSales(),
+    onUpdate: () => fetchSales(),
+    onDelete: () => fetchSales()
+  })
 
   useEffect(() => {
     fetchSales()
@@ -25,8 +51,9 @@ export function SalesAnalysis() {
   useEffect(() => {
     const filtered = sales.filter(sale =>
       sale.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.seller_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      sale.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sale.employee?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sale.cliente?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredSales(filtered)
     setCurrentPage(1)
@@ -34,24 +61,42 @@ export function SalesAnalysis() {
 
   const fetchSales = async () => {
     try {
-      const { data: salesData } = await supabase
+      setLoading(true)
+      
+      const { data: salesData, error } = await supabase
         .from('sales')
         .select(`
           *,
-          sales_items (*)
+          sale_items (*),
+          clientes:cliente (
+            id,
+            nome,
+            telefone,
+            cpf
+          ),
+          employees:employee_id (
+            id,
+            name,
+            code,
+            email
+          )
         `)
-        .order('sale_date', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(100)
 
-      // Mock customer and seller names for demonstration
-      const salesWithNames = salesData?.map(sale => ({
+      if (error) {
+        console.error('Error fetching sales:', error)
+        return
+      }
+
+      const salesWithDetails = salesData?.map(sale => ({
         ...sale,
-        items: sale.sales_items || [],
-        customer_name: `Cliente ${sale.customer_id.slice(-4)}`,
-        seller_name: `Vendedor ${sale.seller_id.slice(-4)}`
+        sale_items: sale.sale_items || [],
+        cliente: sale.clientes,
+        employee: sale.employees
       })) || []
 
-      setSales(salesWithNames)
+      setSales(salesWithDetails)
     } catch (error) {
       console.error('Error fetching sales:', error)
     } finally {
@@ -59,23 +104,17 @@ export function SalesAnalysis() {
     }
   }
 
-  const calculateSaleMetrics = (sale: SaleWithItems) => {
-    const subtotal = sale.total_amount - sale.tax_amount + sale.discount_amount
-    const taxRate = (sale.tax_amount / subtotal) * 100
-    const discountRate = (sale.discount_amount / subtotal) * 100
-    const profit = sale.items.reduce((sum, item) => {
-      // Mock cost calculation - in real scenario, get from product cost
-      const estimatedCost = item.unit_price * 0.6
-      return sum + ((item.unit_price - estimatedCost) * item.quantity)
-    }, 0)
-    const profitMargin = (profit / sale.total_amount) * 100
-
+  const calculateSaleMetrics = (sale: SaleWithDetails) => {
+    const items = sale.sale_items || []
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+    const avgItemPrice = totalItems > 0 ? subtotal / totalItems : 0
+    
     return {
       subtotal,
-      taxRate,
-      discountRate,
-      profit,
-      profitMargin
+      totalItems,
+      avgItemPrice,
+      itemsCount: items.length
     }
   }
 
@@ -85,6 +124,12 @@ export function SalesAnalysis() {
   )
 
   const totalPages = Math.ceil(filteredSales.length / itemsPerPage)
+
+  // Calculate summary metrics
+  const totalRevenue = filteredSales.reduce((sum, sale) => sum + sale.total_amount, 0)
+  const averageTicket = filteredSales.length > 0 ? totalRevenue / filteredSales.length : 0
+  const completedSales = filteredSales.filter(sale => sale.status === 'completed').length
+  const pendingSales = filteredSales.filter(sale => sale.status === 'pending').length
 
   if (loading) {
     return (
@@ -126,13 +171,16 @@ export function SalesAnalysis() {
             </div>
             <TrendingUp className="w-8 h-8 text-blue-600" />
           </div>
+          <div className="mt-2 text-sm text-gray-500">
+            {completedSales} concluídas, {pendingSales} pendentes
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Receita Total</p>
               <p className="text-2xl font-bold text-gray-900">
-                R$ {filteredSales.reduce((sum, sale) => sum + sale.total_amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-green-600" />
@@ -143,7 +191,7 @@ export function SalesAnalysis() {
             <div>
               <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
               <p className="text-2xl font-bold text-gray-900">
-                R$ {filteredSales.length > 0 ? (filteredSales.reduce((sum, sale) => sum + sale.total_amount, 0) / filteredSales.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+                R$ {averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <Calendar className="w-8 h-8 text-purple-600" />
@@ -152,9 +200,13 @@ export function SalesAnalysis() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Impostos Totais</p>
+              <p className="text-sm font-medium text-gray-600">Vendas Hoje</p>
               <p className="text-2xl font-bold text-gray-900">
-                R$ {filteredSales.reduce((sum, sale) => sum + sale.tax_amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {filteredSales.filter(sale => {
+                  const today = new Date().toDateString()
+                  const saleDate = new Date(sale.created_at).toDateString()
+                  return today === saleDate
+                }).length}
               </p>
             </div>
             <User className="w-8 h-8 text-orange-600" />
@@ -201,13 +253,13 @@ export function SalesAnalysis() {
                     #{sale.id.slice(-8)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {sale.customer_name}
+                    {sale.client_name || sale.cliente?.nome || 'Cliente não identificado'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {sale.seller_name}
+                    {sale.employee?.name || 'Vendedor não identificado'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(sale.sale_date).toLocaleDateString('pt-BR')}
+                    {new Date(sale.created_at).toLocaleDateString('pt-BR')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     R$ {sale.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -290,19 +342,32 @@ export function SalesAnalysis() {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Cliente:</span>
-                            <span className="font-medium">{selectedSale.customer_name}</span>
+                            <span className="font-medium">
+                              {selectedSale.client_name || selectedSale.cliente?.nome || 'Não identificado'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">CPF:</span>
+                            <span className="font-medium">
+                              {selectedSale.client_cpf || selectedSale.cliente?.cpf || 'Não informado'}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Vendedor:</span>
-                            <span className="font-medium">{selectedSale.seller_name}</span>
+                            <span className="font-medium">
+                              {selectedSale.employee?.name || 'Não identificado'}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Data:</span>
-                            <span className="font-medium">{new Date(selectedSale.sale_date).toLocaleDateString('pt-BR')}</span>
+                            <span className="font-medium">{new Date(selectedSale.created_at).toLocaleDateString('pt-BR')}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Status:</span>
-                            <span className="font-medium">{selectedSale.status === 'completed' ? 'Concluída' : selectedSale.status === 'pending' ? 'Pendente' : 'Cancelada'}</span>
+                            <span className="font-medium">
+                              {selectedSale.status === 'completed' ? 'Concluída' : 
+                               selectedSale.status === 'pending' ? 'Pendente' : 'Cancelada'}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -314,20 +379,16 @@ export function SalesAnalysis() {
                             <span className="font-medium">R$ {metrics.subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Desconto:</span>
-                            <span className="font-medium text-red-600">-R$ {selectedSale.discount_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({metrics.discountRate.toFixed(1)}%)</span>
+                            <span className="text-gray-600">Total de Itens:</span>
+                            <span className="font-medium">{metrics.totalItems}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Impostos:</span>
-                            <span className="font-medium">R$ {selectedSale.tax_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({metrics.taxRate.toFixed(1)}%)</span>
+                            <span className="text-gray-600">Preço Médio/Item:</span>
+                            <span className="font-medium">R$ {metrics.avgItemPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                           </div>
                           <div className="flex justify-between border-t pt-2">
                             <span className="text-gray-900 font-semibold">Total:</span>
                             <span className="font-bold text-lg">R$ {selectedSale.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Lucro Estimado:</span>
-                            <span className="font-medium text-green-600">R$ {metrics.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({metrics.profitMargin.toFixed(1)}%)</span>
                           </div>
                         </div>
                       </div>
@@ -335,7 +396,7 @@ export function SalesAnalysis() {
 
                     {/* Items */}
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-4">Itens da Venda</h4>
+                      <h4 className="font-semibold text-gray-900 mb-4">Itens da Venda ({metrics.itemsCount})</h4>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50">
@@ -343,18 +404,16 @@ export function SalesAnalysis() {
                               <th className="px-4 py-2 text-left">Produto</th>
                               <th className="px-4 py-2 text-left">Quantidade</th>
                               <th className="px-4 py-2 text-left">Preço Unit.</th>
-                              <th className="px-4 py-2 text-left">Desconto</th>
                               <th className="px-4 py-2 text-left">Total</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
-                            {selectedSale.items.map((item, index) => (
+                            {selectedSale.sale_items.map((item, index) => (
                               <tr key={index}>
-                                <td className="px-4 py-2">Produto {item.product_id.slice(-4)}</td>
+                                <td className="px-4 py-2">{item.name}</td>
                                 <td className="px-4 py-2">{item.quantity}</td>
-                                <td className="px-4 py-2">R$ {item.unit_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td className="px-4 py-2 text-red-600">-R$ {item.discount_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td className="px-4 py-2 font-medium">R$ {item.total_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="px-4 py-2">R$ {item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="px-4 py-2 font-medium">R$ {(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               </tr>
                             ))}
                           </tbody>
