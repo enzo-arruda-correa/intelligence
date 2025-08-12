@@ -48,12 +48,12 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       <Sidebar activeMenu={activeMenu} onMenuChange={setActiveMenu} />
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
           <Suspense fallback={
-            <div className="w-full h-full flex items-center justify-center py-10">
+            <div className="w-full h-64 flex items-center justify-center py-10">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
             </div>
           }>

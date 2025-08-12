@@ -145,28 +145,28 @@ export function InvestmentCalculator() {
   ]
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Calculadora de Investimentos</h1>
-        <Calculator className="w-8 h-8 text-blue-600" />
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Calculadora de Investimentos</h1>
+        <Calculator className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
       </div>
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8 overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
+                className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm flex items-center whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <Icon className="w-4 h-4 mr-2" />
+                <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 {tab.label}
               </button>
             )
@@ -176,49 +176,49 @@ export function InvestmentCalculator() {
 
       {/* ROI Calculator */}
       {activeTab === 'roi' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculadora de ROI</h3>
-            <div className="space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Calculadora de ROI</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Investimento Inicial (R$)
                 </label>
                 <input
                   type="number"
                   value={roiData.initialInvestment}
                   onChange={(e) => setRoiData({...roiData, initialInvestment: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="10000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Valor Final (R$)
                 </label>
                 <input
                   type="number"
                   value={roiData.finalValue}
                   onChange={(e) => setRoiData({...roiData, finalValue: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="15000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Período (meses)
                 </label>
                 <input
                   type="number"
                   value={roiData.timePeriod}
                   onChange={(e) => setRoiData({...roiData, timePeriod: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="12"
                 />
               </div>
               <button
                 onClick={calculateROI}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm"
               >
                 Calcular ROI
               </button>
@@ -226,27 +226,27 @@ export function InvestmentCalculator() {
           </div>
 
           {roiResult && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Resultado do ROI</h3>
-              <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Resultado do ROI</h3>
+              <div className="space-y-3 sm:space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
                     {roiResult.roiPercentage.toFixed(2)}%
                   </div>
-                  <div className="text-sm text-blue-800">Retorno sobre Investimento</div>
+                  <div className="text-xs sm:text-sm text-blue-800">Retorno sobre Investimento</div>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Investimento Inicial:</span>
-                    <span className="font-medium">R$ {roiResult.initialInvestment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-medium text-right">R$ {roiResult.initialInvestment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Valor Final:</span>
-                    <span className="font-medium">R$ {roiResult.finalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-medium text-right">R$ {roiResult.finalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between border-t pt-2">
                     <span className="text-gray-900 font-semibold">Lucro:</span>
-                    <span className="font-bold text-green-600">R$ {roiResult.roi.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-bold text-green-600 text-right">R$ {roiResult.roi.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded text-xs text-gray-600">
@@ -260,37 +260,37 @@ export function InvestmentCalculator() {
 
       {/* Payback Calculator */}
       {activeTab === 'payback' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculadora de Payback</h3>
-            <div className="space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Calculadora de Payback</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Investimento Inicial (R$)
                 </label>
                 <input
                   type="number"
                   value={paybackData.initialInvestment}
                   onChange={(e) => setPaybackData({...paybackData, initialInvestment: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="50000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Retorno Mensal (R$)
                 </label>
                 <input
                   type="number"
                   value={paybackData.monthlyReturn}
                   onChange={(e) => setPaybackData({...paybackData, monthlyReturn: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="5000"
                 />
               </div>
               <button
                 onClick={calculatePayback}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm"
               >
                 Calcular Payback
               </button>
@@ -298,23 +298,23 @@ export function InvestmentCalculator() {
           </div>
 
           {paybackResult && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Resultado do Payback</h3>
-              <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Resultado do Payback</h3>
+              <div className="space-y-3 sm:space-y-4">
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
                     {paybackResult.paybackYears.toFixed(1)} anos
                   </div>
-                  <div className="text-sm text-green-800">Tempo de Retorno</div>
+                  <div className="text-xs sm:text-sm text-green-800">Tempo de Retorno</div>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Investimento:</span>
-                    <span className="font-medium">R$ {paybackResult.initialInvestment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-medium text-right">R$ {paybackResult.initialInvestment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Retorno Mensal:</span>
-                    <span className="font-medium">R$ {paybackResult.monthlyReturn.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-medium text-right">R$ {paybackResult.monthlyReturn.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between border-t pt-2">
                     <span className="text-gray-900 font-semibold">Payback em Meses:</span>
@@ -332,36 +332,36 @@ export function InvestmentCalculator() {
 
       {/* Cash Flow */}
       {activeTab === 'cashflow' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Gerador de Fluxo de Caixa</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Gerador de Fluxo de Caixa</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Período (meses)
                 </label>
                 <input
                   type="number"
                   value={cashFlowData.months}
                   onChange={(e) => setCashFlowData({...cashFlowData, months: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Caixa Inicial (R$)
                 </label>
                 <input
                   type="number"
                   value={cashFlowData.initialCash}
                   onChange={(e) => setCashFlowData({...cashFlowData, initialCash: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
               <div className="flex items-end">
                 <button
                   onClick={generateCashFlow}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm"
                 >
                   Gerar Fluxo
                 </button>
@@ -370,29 +370,29 @@ export function InvestmentCalculator() {
           </div>
 
           {cashFlowItems.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Projeção de Fluxo de Caixa</h3>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Projeção de Fluxo de Caixa</h3>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs sm:text-sm min-w-[600px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 text-left">Mês</th>
-                      <th className="px-4 py-2 text-left">Entradas</th>
-                      <th className="px-4 py-2 text-left">Saídas</th>
-                      <th className="px-4 py-2 text-left">Fluxo Líquido</th>
-                      <th className="px-4 py-2 text-left">Saldo Acumulado</th>
+                      <th className="px-2 sm:px-4 py-2 text-left">Mês</th>
+                      <th className="px-2 sm:px-4 py-2 text-left">Entradas</th>
+                      <th className="px-2 sm:px-4 py-2 text-left">Saídas</th>
+                      <th className="px-2 sm:px-4 py-2 text-left">Fluxo Líquido</th>
+                      <th className="px-2 sm:px-4 py-2 text-left">Saldo Acumulado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {cashFlowItems.map((item) => (
                       <tr key={item.month}>
-                        <td className="px-4 py-2 font-medium">{item.month}</td>
-                        <td className="px-4 py-2 text-green-600">R$ {item.inflow.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="px-4 py-2 text-red-600">R$ {item.outflow.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className={`px-4 py-2 font-medium ${item.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <td className="px-2 sm:px-4 py-2 font-medium">{item.month}</td>
+                        <td className="px-2 sm:px-4 py-2 text-green-600">R$ {item.inflow.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="px-2 sm:px-4 py-2 text-red-600">R$ {item.outflow.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className={`px-2 sm:px-4 py-2 font-medium ${item.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           R$ {item.netFlow.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
-                        <td className={`px-4 py-2 font-bold ${item.cumulativeFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <td className={`px-2 sm:px-4 py-2 font-bold ${item.cumulativeFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           R$ {item.cumulativeFlow.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -407,42 +407,42 @@ export function InvestmentCalculator() {
 
       {/* Inventory Calculator */}
       {activeTab === 'inventory' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Análise de Estoque</h3>
-            <div className="space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Análise de Estoque</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Estoque Médio (R$)
                 </label>
                 <input
                   type="number"
                   value={inventoryData.averageInventory}
                   onChange={(e) => setInventoryData({...inventoryData, averageInventory: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="100000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Custo dos Produtos Vendidos (R$)
                 </label>
                 <input
                   type="number"
                   value={inventoryData.costOfGoodsSold}
                   onChange={(e) => setInventoryData({...inventoryData, costOfGoodsSold: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="600000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Período (meses)
                 </label>
                 <select
                   value={inventoryData.timePeriod}
                   onChange={(e) => setInventoryData({...inventoryData, timePeriod: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="12">12 meses</option>
                   <option value="6">6 meses</option>
@@ -451,7 +451,7 @@ export function InvestmentCalculator() {
               </div>
               <button
                 onClick={calculateInventory}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm"
               >
                 Analisar Estoque
               </button>
@@ -459,16 +459,16 @@ export function InvestmentCalculator() {
           </div>
 
           {inventoryResult && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Resultado da Análise</h3>
-              <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Resultado da Análise</h3>
+              <div className="space-y-3 sm:space-y-4">
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600">
                     {inventoryResult.turnoverRatio.toFixed(2)}x
                   </div>
-                  <div className="text-sm text-purple-800">Giro de Estoque</div>
+                  <div className="text-xs sm:text-sm text-purple-800">Giro de Estoque</div>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Dias em Estoque:</span>
                     <span className="font-medium">{inventoryResult.daysInInventory.toFixed(0)} dias</span>

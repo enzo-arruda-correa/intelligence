@@ -163,41 +163,41 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div className="text-sm text-gray-500">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div className="text-xs sm:text-sm text-gray-500 hidden sm:block">
           Última atualização: {new Date().toLocaleString('pt-BR')}
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statCards.map((card, index) => {
           const Icon = card.icon
           const isPositive = card.change > 0
           
           return (
-            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{card.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{card.title}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mt-1 break-all">{card.value}</p>
                 </div>
-                <div className={`p-3 rounded-full bg-${card.color}-100`}>
-                  <Icon className={`w-6 h-6 text-${card.color}-600`} />
+                <div className={`p-2 sm:p-3 rounded-full bg-${card.color}-100 flex-shrink-0`}>
+                  <Icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${card.color}-600`} />
                 </div>
               </div>
-              <div className="flex items-center mt-4">
+              <div className="flex items-center mt-3 sm:mt-4">
                 {isPositive ? (
                   <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 ) : (
                   <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
                 )}
-                <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`text-xs sm:text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                   {Math.abs(card.change)}%
                 </span>
-                <span className="text-sm text-gray-500 ml-1">vs mês anterior</span>
+                <span className="text-xs sm:text-sm text-gray-500 ml-1 hidden sm:inline">vs mês anterior</span>
               </div>
             </div>
           )
@@ -205,14 +205,14 @@ export function Dashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Sales Chart */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Vendas por Mês</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Vendas por Mês</h3>
+          <ResponsiveContainer width="100%" height={250} minWidth={300}>
             <BarChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
+              <XAxis dataKey="month" fontSize={12} />
               <YAxis />
               <Tooltip />
               <Bar dataKey="vendas" fill="#3B82F6" />
@@ -221,12 +221,12 @@ export function Dashboard() {
         </div>
 
         {/* Revenue Chart */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Receita por Mês</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Receita por Mês</h3>
+          <ResponsiveContainer width="100%" height={250} minWidth={300}>
             <LineChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
+              <XAxis dataKey="month" fontSize={12} />
               <YAxis />
               <Tooltip />
               <Line type="monotone" dataKey="receita" stroke="#10B981" strokeWidth={2} />
@@ -236,14 +236,14 @@ export function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Atividade Recente</h3>
-        <div className="space-y-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Atividade Recente</h3>
+        <div className="space-y-3 sm:space-y-4">
           {salesData.slice(-5).map((item, index) => (
-            <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+            <div key={index} className="flex items-center space-x-3 sm:space-x-4 p-3 bg-gray-50 rounded-lg">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-xs sm:text-sm font-medium text-gray-900">
                   Vendas em {item.month}: {item.vendas} transações
                 </p>
                 <p className="text-xs text-gray-500">
